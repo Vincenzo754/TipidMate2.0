@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.TipidMate"
+        tools:targetApi="31">
+        <activity
+            android:name=".SignupActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".LoginActivity" />
+        <activity android:name=".HomeScreenActivity" />
+        <activity android:name=".TransactionActivity" />
+        <activity android:name=".ChartsActivity" />
+        <activity android:name=".GoalsActivity" />
+        <activity android:name=".GroupBudgetActivity" />
+        <activity android:name=".AllTransactionsActivity" />
+        <activity android:name=".BudgetActivity" />
+        <activity android:name=".GoalsCreateActivity" />
+        <activity android:name=".GoalsDetailsActivity" />
+        <activity android:name=".GoalsSavingsActivity" />
+        <activity android:name=".AllContributionsActivity" />
+    </application>
+
+</manifest>

@@ -1,0 +1,37 @@
+<resources>
+    <string name="app_name">TipidMate</string>
+    <string-array name="goal_categories">
+        <item>Electronic</item>
+        <item>Vehicle</item>
+        <item>Appliances</item>
+        <item>Travel</item>
+        <item>Furniture</item>
+        <item>Educations</item>
+        <item>Others</item>
+    </string-array>
+    <string name="good_morning">Good Morning</string>
+    <string name="user_name">User</string>
+    <string name="logo_description">Logo</string>
+    <string name="total_balance">Total Balance</string>
+    <string name="income">Income</string>
+    <string name="expenses">Expenses</string>
+    <string name="budget_status">Budget Status</string>
+    <string name="view_details">View Details</string>
+    <string name="monthly_budget">Monthly Budget</string>
+    <string name="spent">Spent</string>
+    <string name="recent">Recent</string>
+    <string name="see_all">See All</string>
+    <string name="no_transactions_yet">No transactions yet</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="enter_password">Enter password</string>
+    <string name="log_in">Log In</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="group_icon_desc">Group Icon</string>
+    <string name="join_tipidmate">Join TipidMate</string>
+    <string name="start_managing_finances">Start managing your finances</string>
+    <string name="choose_username">Choose username</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="confirm_your_password">Confirm your password</string>
+    <string name="already_have_account">Already have an account? Log In</string>
+</resources>
