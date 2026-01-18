@@ -22,14 +22,6 @@
             app:titleCentered="true"
             app:titleTextColor="@color/white">
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:padding="16dp"
-                android:src="@drawable/ic_more_vert"
-                app:tint="@color/white" />
-
         </com.google.android.material.appbar.MaterialToolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -169,6 +161,7 @@
                         android:progressDrawable="@drawable/progress_budget" />
 
                     <TextView
+                        android:id="@+id/tvSavingsSuggestion"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
@@ -198,7 +191,7 @@
                     android:id="@+id/tvSeeAll"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="See All"
+                    android:text="See All History"
                     android:textColor="@color/light_green_accent"
                     android:textSize="14sp" />
             </LinearLayout>

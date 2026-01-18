@@ -1,6 +1,7 @@
 package com.example.tipidmate;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
@@ -11,6 +12,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -65,6 +68,26 @@ public class GoalsCreateActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
+
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.navigation_goals);
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.navigation_home) {
+                startActivity(new Intent(getApplicationContext(), HomeScreenActivity.class));
+                return true;
+            } else if (itemId == R.id.navigation_charts) {
+                startActivity(new Intent(getApplicationContext(), ChartsActivity.class));
+                return true;
+            } else if (itemId == R.id.navigation_goals) {
+                // Already on the Goals screen or a sub-screen, do nothing
+                return true;
+            } else if (itemId == R.id.navigation_group_budget) {
+                startActivity(new Intent(getApplicationContext(), GroupBudgetActivity.class));
+                return true;
+            }
+            return false;
+        });
     }
 
     private void showCategoryDialog() {
@@ -110,7 +133,7 @@ public class GoalsCreateActivity extends AppCompatActivity {
             case "Travel":
                 return R.drawable.ic_travel;
             case "Furniture":
-                return R.drawable.ic_furniture;
+                return R.drawable.ic_home;
             case "Educations":
                 return R.drawable.ic_education;
             default:

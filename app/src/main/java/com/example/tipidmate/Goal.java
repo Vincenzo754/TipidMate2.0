@@ -53,6 +53,11 @@ public class Goal implements Serializable {
         this.currentAmount += contribution.getAmount();
     }
 
+    public void removeContribution(Contribution contribution) {
+        this.contributions.remove(contribution);
+        this.currentAmount -= contribution.getAmount();
+    }
+
     public long getTargetDate() {
         return targetDate;
     }

@@ -43,6 +43,7 @@
                 android:textSize="14sp" />
 
             <RelativeLayout
+                android:id="@+id/contributor_selector"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -55,7 +56,7 @@
                     android:layout_height="36dp"
                     android:background="@drawable/shape_circular_background"
                     android:gravity="center"
-                    android:text="ME"
+                    android:text="S"
                     android:textColor="@color/white"
                     android:textStyle="bold" />
 
@@ -66,7 +67,7 @@
                     android:layout_centerVertical="true"
                     android:layout_marginStart="12dp"
                     android:layout_toEndOf="@+id/tv_contributor_initials"
-                    android:text="Me (Joshua)"
+                    android:text="Select Member"
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
@@ -120,19 +121,18 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_save_contribution"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="32dp"
+                android:backgroundTint="@color/light_green_accent"
+                android:text="Save Contribution"
+                android:textColor="@color/black"
+                app:cornerRadius="28dp" />
+
         </LinearLayout>
     </ScrollView>
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_save_contribution"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="24dp"
-        android:backgroundTint="@color/light_green_accent"
-        android:text="Save Contribution"
-        android:textColor="@color/black"
-        app:cornerRadius="28dp" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"

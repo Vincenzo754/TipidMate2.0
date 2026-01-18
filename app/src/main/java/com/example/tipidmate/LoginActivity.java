@@ -1,6 +1,7 @@
 package com.example.tipidmate;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
@@ -33,6 +34,12 @@ public class LoginActivity extends AppCompatActivity {
             if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password)) {
                 Toast.makeText(LoginActivity.this, "Please enter username and password", Toast.LENGTH_SHORT).show();
             } else {
+                // Save the username
+                SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putString("USERNAME", username);
+                editor.apply();
+
                 Intent intent = new Intent(LoginActivity.this, HomeScreenActivity.class);
                 intent.putExtra("USERNAME", username);
                 startActivity(intent);

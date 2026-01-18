@@ -26,6 +26,10 @@ public class GoalRepository {
         goalList.add(goal);
     }
 
+    public void removeGoal(Goal goal) {
+        goalList.remove(goal);
+    }
+
     public Goal findGoalById(String id) {
         for (Goal goal : goalList) {
             if (goal.getId().equals(id)) {

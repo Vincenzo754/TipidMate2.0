@@ -7,12 +7,14 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -50,7 +52,9 @@ public class GoalsSavingsActivity extends AppCompatActivity {
         calendar = Calendar.getInstance();
 
         TextView tvGoalTitle = findViewById(R.id.tvGoalTitle);
+        ImageView ivGoalIcon = findViewById(R.id.ivGoalIcon);
         tvGoalTitle.setText(goal.getTitle());
+        ivGoalIcon.setImageResource(goal.getIconResId());
 
         tvDate.setOnClickListener(v -> showDatePickerDialog());
         tvTime.setOnClickListener(v -> showTimePickerDialog());
@@ -77,6 +81,10 @@ public class GoalsSavingsActivity extends AppCompatActivity {
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
+
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.navigation_goals);
+        BottomNavigationHelper.setupBottomNavigationView(bottomNavigationView, this);
     }
 
     private void showDatePickerDialog() {

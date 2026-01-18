@@ -7,4 +7,10 @@
     <color name="dark_gray_text">#4A4A4A</color>
     <color name="light_gray_text">#8E8E93</color>
     <color name="orange">#FFA500</color>
+
+    <!-- Avatar Colors -->
+    <color name="avatar_blue">#3498DB</color>
+    <color name="avatar_purple">#9B59B6</color>
+    <color name="avatar_orange">#E67E22</color>
+    <color name="avatar_red">#E74C3C</color>
 </resources>

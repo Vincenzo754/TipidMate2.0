@@ -43,10 +43,17 @@ public class BudgetActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("BudgetPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
 
-        String amount = etBudgetAmount.getText().toString();
-        if (!amount.isEmpty()) {
-            editor.putFloat("budgetAmount", Float.parseFloat(amount));
+        String amountStr = etBudgetAmount.getText().toString();
+        float amount = 0;
+        if (!amountStr.isEmpty()) {
+            try {
+                amount = Float.parseFloat(amountStr);
+            } catch (NumberFormatException e) {
+                Toast.makeText(this, "Invalid amount entered.", Toast.LENGTH_SHORT).show();
+                return; // Stop the save if the number is not valid
+            }
         }
+        editor.putFloat("budgetAmount", amount);
 
         int selectedFrequencyId = rgBudgetFrequency.getCheckedRadioButtonId();
         if (selectedFrequencyId == R.id.rbMonthly) {
@@ -61,10 +68,13 @@ public class BudgetActivity extends AppCompatActivity {
 
     private void loadBudget() {
         SharedPreferences prefs = getSharedPreferences("BudgetPrefs", MODE_PRIVATE);
-        float budgetAmount = prefs.getFloat("budgetAmount", 10000);
-        String budgetFrequency = prefs.getString("budgetFrequency", "Monthly");
+        // Only display a value if a budget has been previously set.
+        if (prefs.contains("budgetAmount")) {
+            float budgetAmount = prefs.getFloat("budgetAmount", 0f);
+            etBudgetAmount.setText(String.valueOf(budgetAmount));
+        }
 
-        etBudgetAmount.setText(String.valueOf(budgetAmount));
+        String budgetFrequency = prefs.getString("budgetFrequency", "Monthly");
         if ("Monthly".equals(budgetFrequency)) {
             rbMonthly.setChecked(true);
         } else {

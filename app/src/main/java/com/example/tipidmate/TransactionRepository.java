@@ -25,4 +25,8 @@ public class TransactionRepository {
     public void addTransaction(Transaction transaction) {
         transactions.add(0, transaction);
     }
+
+    public void removeTransaction(Transaction transaction) {
+        transactions.remove(transaction);
+    }
 }

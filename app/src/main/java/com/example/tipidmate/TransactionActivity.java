@@ -2,6 +2,7 @@ package com.example.tipidmate;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -12,6 +13,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -97,6 +100,11 @@ public class TransactionActivity extends AppCompatActivity {
                 finish();
             });
         }
+
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        // Note: No item is selected here as this is a transactional screen, not a main tab.
+        BottomNavigationHelper.setupBottomNavigationView(bottomNavigationView, this);
+
         updateDateAndTime();
     }
 
@@ -108,11 +116,11 @@ public class TransactionActivity extends AppCompatActivity {
         }
 
         double amount = Double.parseDouble(amountStr);
-        // Expenses should be negative, Income positive
-        if (transactionType.equals("Expense") && amount > 0) {
-            amount *= -1;
-        } else if (transactionType.equals("Income") && amount < 0) {
-            amount *= -1; // Ensure income is positive
+        // Expenses should always be negative, Income always positive
+        if (transactionType.equals("Expense")) {
+            amount = -Math.abs(amount);
+        } else {
+            amount = Math.abs(amount);
         }
 
         String note = etNote.getText().toString();

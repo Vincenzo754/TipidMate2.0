@@ -14,25 +14,32 @@
         tools:targetApi="31">
         <activity
             android:name=".SignupActivity"
-            android:exported="true">
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".LoginActivity" />
+        <activity android:name=".LoginActivity" android:windowSoftInputMode="adjustPan" />
         <activity android:name=".HomeScreenActivity" />
-        <activity android:name=".TransactionActivity" />
+        <activity android:name=".TransactionActivity" android:windowSoftInputMode="adjustPan"/>
         <activity android:name=".ChartsActivity" />
-        <activity android:name=".GoalsActivity" />
-        <activity android:name=".GroupBudgetActivity" />
+        <activity android:name=".GoalsActivity" android:windowSoftInputMode="adjustPan"/>
+        <activity android:name=".GroupBudgetActivity" android:windowSoftInputMode="adjustPan"/>
         <activity android:name=".AllTransactionsActivity" />
-        <activity android:name=".BudgetActivity" />
-        <activity android:name=".GoalsCreateActivity" />
+        <activity android:name=".BudgetActivity" android:windowSoftInputMode="adjustPan"/>
+        <activity android:name=".GoalsCreateActivity" android:windowSoftInputMode="adjustPan" />
         <activity android:name=".GoalsDetailsActivity" />
-        <activity android:name=".GoalsSavingsActivity" />
+        <activity android:name=".GoalsSavingsActivity" android:windowSoftInputMode="adjustPan"/>
         <activity android:name=".AllContributionsActivity" />
+        <activity
+            android:name=".NewGroupBudgetActivity"
+            android:windowSoftInputMode="adjustPan" />
+        <activity android:name=".GroupBudgetDetailsActivity" />
+        <activity android:name=".GroupBudgetAddActivity" android:windowSoftInputMode="adjustPan" />
+        <activity android:name=".GroupBudgetHistoryActivity" />
     </application>
 
 </manifest>

@@ -1,5 +1,6 @@
 package com.example.tipidmate;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -26,7 +27,7 @@ public class HomeScreenActivity extends AppCompatActivity {
 
     private TransactionRepository transactionRepository;
     private LinearLayout llTransactions;
-    private TextView tvTotalBalance, tvSpentAmount, tvRemaining, tvBudgetAmount, tvBudgetLabel, tvNoTransactions, tvUserName;
+    private TextView tvTotalBalance, tvSpentAmount, tvRemaining, tvBudgetAmount, tvBudgetLabel, tvNoTransactions, tvUserName, tvGreeting;
     private ProgressBar pbBudget;
 
     @Override
@@ -44,12 +45,19 @@ public class HomeScreenActivity extends AppCompatActivity {
         tvBudgetLabel = findViewById(R.id.tvBudgetLabel);
         tvNoTransactions = findViewById(R.id.tvNoTransactions);
         tvUserName = findViewById(R.id.tvUserName);
+        tvGreeting = findViewById(R.id.tvGreeting);
 
+        // Handle username display
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        String username = prefs.getString("USERNAME", "User"); // Default to "User"
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("USERNAME")) {
-            String username = intent.getStringExtra("USERNAME");
-            tvUserName.setText(username);
+            username = intent.getStringExtra("USERNAME");
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putString("USERNAME", username);
+            editor.apply();
         }
+        tvUserName.setText(username);
 
         Button btnIncome = findViewById(R.id.btnIncome);
         Button btnExpenses = findViewById(R.id.btnExpenses);
@@ -80,25 +88,7 @@ public class HomeScreenActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setSelectedItemId(R.id.navigation_home);
-        bottomNavigationView.setOnItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.navigation_home) {
-                return true;
-            } else if (itemId == R.id.navigation_charts) {
-                startActivity(new Intent(getApplicationContext(), ChartsActivity.class));
-                overridePendingTransition(0, 0);
-                return true;
-            } else if (itemId == R.id.navigation_goals) {
-                startActivity(new Intent(getApplicationContext(), GoalsActivity.class));
-                overridePendingTransition(0, 0);
-                return true;
-            } else if (itemId == R.id.navigation_group_budget) {
-                startActivity(new Intent(getApplicationContext(), GroupBudgetActivity.class));
-                overridePendingTransition(0, 0);
-                return true;
-            }
-            return false;
-        });
+        BottomNavigationHelper.setupBottomNavigationView(bottomNavigationView, this);
 
         updateUI();
     }
@@ -110,9 +100,26 @@ public class HomeScreenActivity extends AppCompatActivity {
     }
 
     private void updateUI() {
+        updateGreeting();
         updateRecentTransactions();
         updateTotalBalance();
         updateBudgetStatus();
+    }
+
+    private void updateGreeting() {
+        Calendar c = Calendar.getInstance();
+        int hour = c.get(Calendar.HOUR_OF_DAY);
+
+        String greeting;
+        if (hour >= 6 && hour < 12) {
+            greeting = "Good Morning";
+        } else if (hour >= 12 && hour < 18) {
+            greeting = "Good Afternoon";
+        } else {
+            greeting = "Good Evening";
+        }
+
+        tvGreeting.setText(greeting);
     }
 
     private void updateRecentTransactions() {
@@ -137,6 +144,7 @@ public class HomeScreenActivity extends AppCompatActivity {
             TextView tvTransactionTitle = transactionView.findViewById(R.id.tvTransactionTitle);
             TextView tvTransactionDate = transactionView.findViewById(R.id.tvTransactionDate);
             TextView tvTransactionAmount = transactionView.findViewById(R.id.tvTransactionAmount);
+            ImageView ivDeleteIcon = transactionView.findViewById(R.id.ivDeleteIcon);
 
             ivCategoryIcon.setImageResource(transaction.iconResId);
             ivCategoryIcon.setColorFilter(ContextCompat.getColor(this, transaction.iconTint));
@@ -151,6 +159,9 @@ public class HomeScreenActivity extends AppCompatActivity {
                 tvTransactionAmount.setText("+₱" + amountString);
                 tvTransactionAmount.setTextColor(ContextCompat.getColor(this, R.color.light_green_accent));
             }
+
+            // Hide the delete icon on the home screen
+            ivDeleteIcon.setVisibility(View.GONE);
 
             llTransactions.addView(transactionView);
             count++;
@@ -167,7 +178,7 @@ public class HomeScreenActivity extends AppCompatActivity {
 
     private void updateBudgetStatus() {
         SharedPreferences prefs = getSharedPreferences("BudgetPrefs", MODE_PRIVATE);
-        float budgetAmount = prefs.getFloat("budgetAmount", 10000);
+        float budgetAmount = prefs.getFloat("budgetAmount", 0f);
         String budgetFrequency = prefs.getString("budgetFrequency", "Monthly");
 
         tvBudgetAmount.setText(String.format(Locale.getDefault(), "₱%.0f", budgetAmount));

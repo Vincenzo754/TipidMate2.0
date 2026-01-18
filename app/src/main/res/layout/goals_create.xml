@@ -224,8 +224,8 @@
 
         <EditText
             android:id="@+id/etDescription"
-            android:layout_width="360dp"
-            android:layout_height="49dp"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="16dp"
             android:background="@drawable/bg_goal_input_field"
@@ -244,8 +244,8 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnSetGoal"
-            android:layout_width="363dp"
-            android:layout_height="45dp"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
             android:layout_marginBottom="8dp"
             android:background="@drawable/bg_set_goal_button"
             android:text="Set Goal"

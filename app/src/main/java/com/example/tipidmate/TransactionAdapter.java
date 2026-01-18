@@ -1,5 +1,7 @@
 package com.example.tipidmate;
 
+import android.app.AlertDialog;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,7 +35,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     @Override
     public void onBindViewHolder(@NonNull TransactionViewHolder holder, int position) {
         Transaction transaction = transactions.get(position);
-        holder.bind(transaction);
+        holder.bind(transaction, position);
     }
 
     @Override
@@ -41,21 +43,25 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         return transactions.size();
     }
 
-    static class TransactionViewHolder extends RecyclerView.ViewHolder {
+    class TransactionViewHolder extends RecyclerView.ViewHolder {
         private final ImageView ivCategoryIcon;
         private final TextView tvTransactionTitle;
         private final TextView tvTransactionDate;
         private final TextView tvTransactionAmount;
+        private final ImageView ivDeleteIcon;
+        private final Context context;
 
         public TransactionViewHolder(@NonNull View itemView) {
             super(itemView);
+            this.context = itemView.getContext();
             ivCategoryIcon = itemView.findViewById(R.id.ivCategoryIcon);
             tvTransactionTitle = itemView.findViewById(R.id.tvTransactionTitle);
             tvTransactionDate = itemView.findViewById(R.id.tvTransactionDate);
             tvTransactionAmount = itemView.findViewById(R.id.tvTransactionAmount);
+            ivDeleteIcon = itemView.findViewById(R.id.ivDeleteIcon);
         }
 
-        public void bind(Transaction transaction) {
+        public void bind(Transaction transaction, int position) {
             ivCategoryIcon.setImageResource(transaction.iconResId);
             ivCategoryIcon.setColorFilter(ContextCompat.getColor(itemView.getContext(), transaction.iconTint));
             tvTransactionTitle.setText(transaction.title);
@@ -71,6 +77,20 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
                 tvTransactionAmount.setText("+₱" + amountString);
                 tvTransactionAmount.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.light_green_accent));
             }
+
+            ivDeleteIcon.setOnClickListener(v -> {
+                new AlertDialog.Builder(context)
+                        .setTitle("Delete Transaction")
+                        .setMessage("Are you sure you want to delete this transaction?")
+                        .setPositiveButton("Delete", (dialog, which) -> {
+                            TransactionRepository.getInstance().removeTransaction(transaction);
+                            transactions.remove(position);
+                            notifyItemRemoved(position);
+                            notifyItemRangeChanged(position, transactions.size());
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            });
         }
     }
 }
