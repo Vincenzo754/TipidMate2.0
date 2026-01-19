@@ -8,7 +8,7 @@ public class TransactionRepository {
     private final List<Transaction> transactions = new ArrayList<>();
 
     private TransactionRepository() {
-        // Dummy data removed to start with an empty list
+        // Private constructor for singleton
     }
 
     public static synchronized TransactionRepository getInstance() {
@@ -19,14 +19,14 @@ public class TransactionRepository {
     }
 
     public List<Transaction> getTransactions() {
-        return transactions;
+        return new ArrayList<>(transactions);
     }
 
     public void addTransaction(Transaction transaction) {
         transactions.add(0, transaction);
     }
 
-    public void removeTransaction(Transaction transaction) {
+    public void deleteTransaction(Transaction transaction) {
         transactions.remove(transaction);
     }
 }

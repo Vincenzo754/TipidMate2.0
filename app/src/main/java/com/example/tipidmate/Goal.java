@@ -15,6 +15,7 @@ public class Goal implements Serializable {
     private String description;
     private int iconResId;
     private List<Contribution> contributions;
+    private long timestamp;
 
     public Goal(String title, String category, double targetAmount, long targetDate, String description, int iconResId) {
         this.id = UUID.randomUUID().toString();
@@ -26,6 +27,7 @@ public class Goal implements Serializable {
         this.iconResId = iconResId;
         this.currentAmount = 0;
         this.contributions = new ArrayList<>();
+        this.timestamp = System.currentTimeMillis();
     }
 
     public String getId() {
@@ -72,5 +74,9 @@ public class Goal implements Serializable {
 
     public List<Contribution> getContributions() {
         return contributions;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
     }
 }

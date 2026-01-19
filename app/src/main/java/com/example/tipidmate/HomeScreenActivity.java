@@ -1,34 +1,30 @@
 package com.example.tipidmate;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class HomeScreenActivity extends AppCompatActivity {
+public class HomeScreenActivity extends AppCompatActivity implements TransactionAdapter.OnTransactionDeletedListener {
 
     private TransactionRepository transactionRepository;
-    private LinearLayout llTransactions;
+    private RecyclerView rvRecentTransactions;
     private TextView tvTotalBalance, tvSpentAmount, tvRemaining, tvBudgetAmount, tvBudgetLabel, tvNoTransactions, tvUserName, tvGreeting;
     private ProgressBar pbBudget;
+    private TransactionAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +32,7 @@ public class HomeScreenActivity extends AppCompatActivity {
         setContentView(R.layout.home_screen);
 
         transactionRepository = TransactionRepository.getInstance();
-        llTransactions = findViewById(R.id.llTransactions);
+        rvRecentTransactions = findViewById(R.id.rvRecentTransactions);
         tvTotalBalance = findViewById(R.id.tvTotalBalance);
         tvSpentAmount = findViewById(R.id.tvSpentAmount);
         tvRemaining = findViewById(R.id.tvRemaining);
@@ -61,7 +57,6 @@ public class HomeScreenActivity extends AppCompatActivity {
 
         Button btnIncome = findViewById(R.id.btnIncome);
         Button btnExpenses = findViewById(R.id.btnExpenses);
-        TextView tvSeeAll = findViewById(R.id.tvSeeAll);
         TextView tvViewDetails = findViewById(R.id.tvViewDetails);
 
         btnIncome.setOnClickListener(v -> {
@@ -76,11 +71,6 @@ public class HomeScreenActivity extends AppCompatActivity {
             startActivity(transactionIntent);
         });
 
-        tvSeeAll.setOnClickListener(v -> {
-            Intent allTransactionsIntent = new Intent(HomeScreenActivity.this, AllTransactionsActivity.class);
-            startActivity(allTransactionsIntent);
-        });
-
         tvViewDetails.setOnClickListener(v -> {
             Intent budgetIntent = new Intent(HomeScreenActivity.this, BudgetActivity.class);
             startActivity(budgetIntent);
@@ -90,6 +80,7 @@ public class HomeScreenActivity extends AppCompatActivity {
         bottomNavigationView.setSelectedItemId(R.id.navigation_home);
         BottomNavigationHelper.setupBottomNavigationView(bottomNavigationView, this);
 
+        setupRecyclerView();
         updateUI();
     }
 
@@ -99,7 +90,13 @@ public class HomeScreenActivity extends AppCompatActivity {
         updateUI();
     }
 
-    private void updateUI() {
+    private void setupRecyclerView() {
+        rvRecentTransactions.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new TransactionAdapter(this, transactionRepository.getTransactions(), this);
+        rvRecentTransactions.setAdapter(adapter);
+    }
+
+    public void updateUI() {
         updateGreeting();
         updateRecentTransactions();
         updateTotalBalance();
@@ -123,48 +120,14 @@ public class HomeScreenActivity extends AppCompatActivity {
     }
 
     private void updateRecentTransactions() {
-        llTransactions.removeAllViews();
         List<Transaction> transactions = transactionRepository.getTransactions();
-        LayoutInflater inflater = LayoutInflater.from(this);
-
         if (transactions.isEmpty()) {
             tvNoTransactions.setVisibility(View.VISIBLE);
+            rvRecentTransactions.setVisibility(View.GONE);
         } else {
             tvNoTransactions.setVisibility(View.GONE);
-        }
-
-        int count = 0;
-        for (Transaction transaction : transactions) {
-            if (count >= 5) {
-                break;
-            }
-            View transactionView = inflater.inflate(R.layout.transaction_item, llTransactions, false);
-
-            ImageView ivCategoryIcon = transactionView.findViewById(R.id.ivCategoryIcon);
-            TextView tvTransactionTitle = transactionView.findViewById(R.id.tvTransactionTitle);
-            TextView tvTransactionDate = transactionView.findViewById(R.id.tvTransactionDate);
-            TextView tvTransactionAmount = transactionView.findViewById(R.id.tvTransactionAmount);
-            ImageView ivDeleteIcon = transactionView.findViewById(R.id.ivDeleteIcon);
-
-            ivCategoryIcon.setImageResource(transaction.iconResId);
-            ivCategoryIcon.setColorFilter(ContextCompat.getColor(this, transaction.iconTint));
-            tvTransactionTitle.setText(transaction.title);
-            tvTransactionDate.setText(new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault()).format(new Date(transaction.timestamp)));
-
-            String amountString = String.format(Locale.getDefault(), "%.2f", Math.abs(transaction.amount));
-            if (transaction.amount < 0) {
-                tvTransactionAmount.setText("-₱" + amountString);
-                tvTransactionAmount.setTextColor(ContextCompat.getColor(this, R.color.white));
-            } else {
-                tvTransactionAmount.setText("+₱" + amountString);
-                tvTransactionAmount.setTextColor(ContextCompat.getColor(this, R.color.light_green_accent));
-            }
-
-            // Hide the delete icon on the home screen
-            ivDeleteIcon.setVisibility(View.GONE);
-
-            llTransactions.addView(transactionView);
-            count++;
+            rvRecentTransactions.setVisibility(View.VISIBLE);
+            adapter.updateTransactions(transactions);
         }
     }
 
@@ -214,5 +177,10 @@ public class HomeScreenActivity extends AppCompatActivity {
         tvRemaining.setText(String.format(Locale.getDefault(), "%.0f%%", spentPercent));
 
         pbBudget.setProgress((int) spentPercent);
+    }
+
+    @Override
+    public void onTransactionDeleted() {
+        updateUI();
     }
 }

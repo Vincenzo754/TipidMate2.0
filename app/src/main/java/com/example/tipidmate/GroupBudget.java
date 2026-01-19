@@ -12,6 +12,7 @@ public class GroupBudget implements Serializable {
     private double targetAmount;
     private List<String> members;
     private List<GroupContribution> contributions = new ArrayList<>();
+    private long timestamp;
 
     public GroupBudget(String title, String description, double targetAmount, List<String> members) {
         this.id = UUID.randomUUID().toString();
@@ -19,6 +20,7 @@ public class GroupBudget implements Serializable {
         this.description = description;
         this.targetAmount = targetAmount;
         this.members = members;
+        this.timestamp = System.currentTimeMillis();
     }
 
     // Getters
@@ -74,5 +76,9 @@ public class GroupBudget implements Serializable {
 
     public void removeContribution(GroupContribution contribution) {
         contributions.remove(contribution);
+    }
+
+    public long getTimestamp() {
+        return timestamp;
     }
 }

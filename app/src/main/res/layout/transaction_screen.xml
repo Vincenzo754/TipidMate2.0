@@ -67,7 +67,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/bg_tab_selected"
                     android:gravity="center"
-                    android:text="Expense"
+                    android:text="Expenses"
                     android:textColor="@color/black"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -469,7 +469,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android.background="@drawable/bg_input_field"
+                android:background="@drawable/bg_note_field"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="16dp"
