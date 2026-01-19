@@ -133,7 +133,7 @@ public class GoalsCreateActivity extends AppCompatActivity {
             case "Travel":
                 return R.drawable.ic_travel;
             case "Furniture":
-                return R.drawable.ic_home;
+                return R.drawable.ic_furniture;
             case "Educations":
                 return R.drawable.ic_education;
             default:

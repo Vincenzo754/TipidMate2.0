@@ -46,7 +46,7 @@
                 android:background="@drawable/bg_icon_blue"
                 android:padding="20dp"
                 android:src="@drawable/ic_laptop"
-                app:tint="@color/white" />
+                app:tint="@color/light_green_accent" />
 
             <TextView
                 android:id="@+id/tvGoalTitle"

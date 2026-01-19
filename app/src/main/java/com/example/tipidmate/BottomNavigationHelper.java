@@ -55,5 +55,9 @@ public class BottomNavigationHelper {
             }
             return false;
         });
+
+        bottomNavigationView.setOnItemReselectedListener(item -> {
+            // Do nothing. This prevents re-selecting the same item from reloading the activity.
+        });
     }
 }

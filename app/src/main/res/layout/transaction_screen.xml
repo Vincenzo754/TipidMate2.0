@@ -502,7 +502,7 @@
                 android:layout_height="56dp"
                 android:layout_marginTop="32dp"
                 android:backgroundTint="@color/light_green_accent"
-                android:text="Save Transction"
+                android:text="Save Transaction"
                 android:textColor="@color/black"
                 android:textSize="16sp"
                 android:textStyle="bold"
