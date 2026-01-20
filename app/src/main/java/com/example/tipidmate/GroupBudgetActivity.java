@@ -74,6 +74,8 @@ public class GroupBudgetActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         updateGroupBudgetList();
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.navigation_group_budget);
     }
 
     private void updateGroupBudgetList() {

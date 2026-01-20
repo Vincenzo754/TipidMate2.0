@@ -88,6 +88,8 @@ public class HomeScreenActivity extends AppCompatActivity implements Transaction
     protected void onResume() {
         super.onResume();
         updateUI();
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.navigation_home);
     }
 
     private void setupRecyclerView() {
