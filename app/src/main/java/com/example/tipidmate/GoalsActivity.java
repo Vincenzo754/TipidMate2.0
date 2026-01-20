@@ -75,6 +75,8 @@ public class GoalsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         updateGoalsList();
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.navigation_goals);
     }
 
     private void updateGoalsList() {

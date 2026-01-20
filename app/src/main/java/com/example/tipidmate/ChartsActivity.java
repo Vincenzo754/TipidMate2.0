@@ -71,6 +71,13 @@ public class ChartsActivity extends AppCompatActivity {
         BottomNavigationHelper.setupBottomNavigationView(bottomNavigationView, this);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.navigation_charts);
+    }
+
     private void setupBarChart() {
         barChart.getDescription().setEnabled(false);
         barChart.getAxisRight().setEnabled(false);
