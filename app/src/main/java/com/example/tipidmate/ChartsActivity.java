@@ -1,15 +1,24 @@
 package com.example.tipidmate;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import com.example.tipidmate.api.ApiService;
+import com.example.tipidmate.api.RetrofitClient;
+import com.example.tipidmate.models.ApiResponse;
+import com.example.tipidmate.models.Expense;
+import com.example.tipidmate.models.Goal;
+import com.example.tipidmate.models.GroupBudget;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
@@ -26,11 +35,16 @@ import com.github.mikephil.charting.formatter.LargeValueFormatter;
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ChartsActivity extends AppCompatActivity {
 
@@ -40,30 +54,49 @@ public class ChartsActivity extends AppCompatActivity {
     private PieChart groupBudgetPieChart;
     private LinearLayout groupBudgetLegendContainer;
     private TextView barChartLastUpdated, goalsLastUpdated, groupBudgetLastUpdated;
+    private ApiService apiService;
+    private int userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.charts_screen);
 
-        // Bar Chart
+        // Get user ID
+        SharedPreferences prefs = getSharedPreferences("TipidMatePrefs", MODE_PRIVATE);
+        userId = prefs.getInt("user_id", -1);
+
+        if (userId == -1) {
+            Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(ChartsActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
+        // Initialize API
+        apiService = RetrofitClient.getClient().create(ApiService.class);
+
+        // Initialize views
         barChart = findViewById(R.id.barChart);
         barChartLastUpdated = findViewById(R.id.bar_chart_last_updated);
-        setupBarChart();
-        loadBarChartData();
 
-        // Goals Chart
         goalsPieChart = findViewById(R.id.pieChart);
         goalsLegendContainer = findViewById(R.id.legend_container);
         goalsLastUpdated = findViewById(R.id.goals_last_updated);
-        setupPieChart(goalsPieChart, "Goals");
-        loadGoalsPieChartData();
 
-        // Group Budget Chart
         groupBudgetPieChart = findViewById(R.id.groupBudgetPieChart);
         groupBudgetLegendContainer = findViewById(R.id.group_budget_legend_container);
         groupBudgetLastUpdated = findViewById(R.id.group_budget_last_updated);
+
+        // Setup charts
+        setupBarChart();
+        setupPieChart(goalsPieChart, "Goals");
         setupPieChart(groupBudgetPieChart, "Group Budgets");
+
+        // Load data from database
+        loadBarChartData();
+        loadGoalsPieChartData();
         loadGroupBudgetPieChartData();
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -74,6 +107,9 @@ public class ChartsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        loadBarChartData();
+        loadGoalsPieChartData();
+        loadGroupBudgetPieChartData();
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setSelectedItemId(R.id.navigation_charts);
     }
@@ -107,35 +143,52 @@ public class ChartsActivity extends AppCompatActivity {
     }
 
     private void loadBarChartData() {
-        TransactionRepository transactionRepository = TransactionRepository.getInstance();
-        List<Transaction> transactions = transactionRepository.getTransactions();
+        Call<ApiResponse<List<Expense>>> call = apiService.getExpenses(userId);
+        call.enqueue(new Callback<ApiResponse<List<Expense>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<Expense>>> call, Response<ApiResponse<List<Expense>>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<List<Expense>> apiResponse = response.body();
 
-        if (transactions.isEmpty()) {
-            barChart.setVisibility(View.GONE);
-            TextView barChartTitle = findViewById(R.id.bar_chart_title);
-            if (barChartTitle != null) {
-                barChartTitle.setText("No Data yet.");
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        List<Expense> expenses = apiResponse.getData();
+
+                        if (expenses.isEmpty()) {
+                            barChart.setVisibility(View.GONE);
+                            TextView barChartTitle = findViewById(R.id.bar_chart_title);
+                            if (barChartTitle != null) {
+                                barChartTitle.setText("No Expenses Yet.");
+                            }
+                            return;
+                        }
+
+                        barChart.setVisibility(View.VISIBLE);
+                        displayBarChart(expenses);
+                    }
+                }
             }
-            return;
-        }
 
+            @Override
+            public void onFailure(Call<ApiResponse<List<Expense>>> call, Throwable t) {
+                t.printStackTrace();
+            }
+        });
+    }
+
+    private void displayBarChart(List<Expense> expenses) {
         ArrayList<BarEntry> entries = new ArrayList<>();
         ArrayList<String> labels = new ArrayList<>();
         ArrayList<Integer> colors = new ArrayList<>();
-        long lastTransactionTimestamp = 0;
+        String lastExpenseDate = "";
 
-        for (int i = 0; i < transactions.size(); i++) {
-            Transaction transaction = transactions.get(i);
-            entries.add(new BarEntry(i, (float) transaction.amount));
-            labels.add(transaction.title);
-            if (transaction.amount < 0) {
-                colors.add(Color.RED);
-            } else {
-                colors.add(ContextCompat.getColor(this, R.color.light_green_accent));
-            }
+        for (int i = 0; i < expenses.size(); i++) {
+            Expense expense = expenses.get(i);
+            entries.add(new BarEntry(i, (float) expense.getAmount()));
+            labels.add(expense.getDescription());
+            colors.add(Color.RED); // Expenses are red
 
-            if (transaction.timestamp > lastTransactionTimestamp) {
-                lastTransactionTimestamp = transaction.timestamp;
+            if (i == 0) {
+                lastExpenseDate = expense.getExpenseDate();
             }
         }
 
@@ -150,7 +203,7 @@ public class ChartsActivity extends AppCompatActivity {
         barChart.setData(barData);
         barChart.invalidate();
 
-        updateLastUpdated(barChartLastUpdated, lastTransactionTimestamp);
+        updateLastUpdatedFromDate(barChartLastUpdated, lastExpenseDate);
     }
 
     private void setupPieChart(PieChart chart, String centerText) {
@@ -169,27 +222,50 @@ public class ChartsActivity extends AppCompatActivity {
     }
 
     private void loadGoalsPieChartData() {
-        GoalRepository goalRepository = GoalRepository.getInstance();
-        List<Goal> goals = goalRepository.getGoalList();
+        Call<ApiResponse<List<Goal>>> call = apiService.getGoals(userId);
+        call.enqueue(new Callback<ApiResponse<List<Goal>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<Goal>>> call, Response<ApiResponse<List<Goal>>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<List<Goal>> apiResponse = response.body();
 
-        ArrayList<PieEntry> entries = new ArrayList<>();
-        ArrayList<Long> timestamps = new ArrayList<>();
-        long lastGoalTimestamp = 0;
-        if (goals.isEmpty()) {
-            findViewById(R.id.pieChart).setVisibility(View.GONE);
-            findViewById(R.id.legend_container).setVisibility(View.GONE);
-            TextView breakdownTitle = findViewById(R.id.breakdown_title);
-            if(breakdownTitle != null) {
-                breakdownTitle.setText("No Goals Yet.");
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        List<Goal> goals = apiResponse.getData();
+
+                        if (goals.isEmpty()) {
+                            goalsPieChart.setVisibility(View.GONE);
+                            goalsLegendContainer.setVisibility(View.GONE);
+                            TextView breakdownTitle = findViewById(R.id.breakdown_title);
+                            if (breakdownTitle != null) {
+                                breakdownTitle.setText("No Goals Yet.");
+                            }
+                            return;
+                        }
+
+                        goalsPieChart.setVisibility(View.VISIBLE);
+                        goalsLegendContainer.setVisibility(View.VISIBLE);
+                        displayGoalsPieChart(goals);
+                    }
+                }
             }
-            return;
-        }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<Goal>>> call, Throwable t) {
+                t.printStackTrace();
+            }
+        });
+    }
+
+    private void displayGoalsPieChart(List<Goal> goals) {
+        ArrayList<PieEntry> entries = new ArrayList<>();
+        ArrayList<String> dates = new ArrayList<>();
+        String lastGoalDate = "";
 
         for (Goal goal : goals) {
-            entries.add(new PieEntry((float) goal.getTargetAmount(), goal.getTitle()));
-            timestamps.add(goal.getTimestamp());
-            if (goal.getTimestamp() > lastGoalTimestamp) {
-                lastGoalTimestamp = goal.getTimestamp();
+            entries.add(new PieEntry((float) goal.getTargetAmount(), goal.getGoalName()));
+            dates.add(goal.getCreationDate());
+            if (lastGoalDate.isEmpty()) {
+                lastGoalDate = goal.getCreationDate();
             }
         }
 
@@ -197,32 +273,55 @@ public class ChartsActivity extends AppCompatActivity {
         goalsPieChart.setData(data);
         goalsPieChart.invalidate();
 
-        createCustomLegend(goalsLegendContainer, entries, data, timestamps);
-        updateLastUpdated(goalsLastUpdated, lastGoalTimestamp);
+        createCustomLegend(goalsLegendContainer, entries, data, dates);
+        updateLastUpdatedFromDate(goalsLastUpdated, lastGoalDate);
     }
 
     private void loadGroupBudgetPieChartData() {
-        GroupBudgetRepository groupBudgetRepository = GroupBudgetRepository.getInstance();
-        List<GroupBudget> groupBudgets = groupBudgetRepository.getGroupBudgets();
+        Call<ApiResponse<List<GroupBudget>>> call = apiService.getGroupBudgets(userId);
+        call.enqueue(new Callback<ApiResponse<List<GroupBudget>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<GroupBudget>>> call, Response<ApiResponse<List<GroupBudget>>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<List<GroupBudget>> apiResponse = response.body();
 
-        ArrayList<PieEntry> entries = new ArrayList<>();
-        ArrayList<Long> timestamps = new ArrayList<>();
-        long lastGroupBudgetTimestamp = 0;
-        if (groupBudgets.isEmpty()) {
-            findViewById(R.id.groupBudgetPieChart).setVisibility(View.GONE);
-            findViewById(R.id.group_budget_legend_container).setVisibility(View.GONE);
-            TextView breakdownTitle = findViewById(R.id.group_budget_breakdown_title);
-            if(breakdownTitle != null) {
-                breakdownTitle.setText("No Group Budgets Yet.");
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        List<GroupBudget> groupBudgets = apiResponse.getData();
+
+                        if (groupBudgets.isEmpty()) {
+                            groupBudgetPieChart.setVisibility(View.GONE);
+                            groupBudgetLegendContainer.setVisibility(View.GONE);
+                            TextView breakdownTitle = findViewById(R.id.group_budget_breakdown_title);
+                            if (breakdownTitle != null) {
+                                breakdownTitle.setText("No Group Budgets Yet.");
+                            }
+                            return;
+                        }
+
+                        groupBudgetPieChart.setVisibility(View.VISIBLE);
+                        groupBudgetLegendContainer.setVisibility(View.VISIBLE);
+                        displayGroupBudgetPieChart(groupBudgets);
+                    }
+                }
             }
-            return;
-        }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<GroupBudget>>> call, Throwable t) {
+                t.printStackTrace();
+            }
+        });
+    }
+
+    private void displayGroupBudgetPieChart(List<GroupBudget> groupBudgets) {
+        ArrayList<PieEntry> entries = new ArrayList<>();
+        ArrayList<String> dates = new ArrayList<>();
+        String lastBudgetDate = "";
 
         for (GroupBudget groupBudget : groupBudgets) {
-            entries.add(new PieEntry((float) groupBudget.getTargetAmount(), groupBudget.getTitle()));
-            timestamps.add(groupBudget.getTimestamp());
-            if (groupBudget.getTimestamp() > lastGroupBudgetTimestamp) {
-                lastGroupBudgetTimestamp = groupBudget.getTimestamp();
+            entries.add(new PieEntry((float) groupBudget.getTargetAmount(), groupBudget.getBudgetName()));
+            dates.add(groupBudget.getCreatedAt());
+            if (lastBudgetDate.isEmpty()) {
+                lastBudgetDate = groupBudget.getCreatedAt();
             }
         }
 
@@ -230,8 +329,8 @@ public class ChartsActivity extends AppCompatActivity {
         groupBudgetPieChart.setData(data);
         groupBudgetPieChart.invalidate();
 
-        createCustomLegend(groupBudgetLegendContainer, entries, data, timestamps);
-        updateLastUpdated(groupBudgetLastUpdated, lastGroupBudgetTimestamp);
+        createCustomLegend(groupBudgetLegendContainer, entries, data, dates);
+        updateLastUpdatedFromDate(groupBudgetLastUpdated, lastBudgetDate);
     }
 
     private PieData createPieData(ArrayList<PieEntry> entries, String label) {
@@ -250,10 +349,9 @@ public class ChartsActivity extends AppCompatActivity {
         return new PieData(dataSet);
     }
 
-    private void createCustomLegend(LinearLayout legendLayout, ArrayList<PieEntry> entries, PieData pieData, ArrayList<Long> timestamps) {
+    private void createCustomLegend(LinearLayout legendLayout, ArrayList<PieEntry> entries, PieData pieData, ArrayList<String> dates) {
         legendLayout.removeAllViews();
         LayoutInflater inflater = LayoutInflater.from(this);
-        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
 
         for (int i = 0; i < entries.size(); i++) {
             PieEntry entry = entries.get(i);
@@ -265,19 +363,35 @@ public class ChartsActivity extends AppCompatActivity {
             TextView legendTimestamp = legendItem.findViewById(R.id.legend_timestamp);
             TextView legendPercentage = legendItem.findViewById(R.id.legend_percentage);
 
-            legendColor.setBackgroundColor(((PieDataSet)pieData.getDataSet()).getColors().get(i % pieData.getDataSet().getColors().size()));
+            legendColor.setBackgroundColor(((PieDataSet) pieData.getDataSet()).getColors().get(i % pieData.getDataSet().getColors().size()));
             legendLabel.setText(entry.getLabel());
-            legendTimestamp.setText(sdf.format(new Date(timestamps.get(i))));
+
+            // Format date from database (yyyy-MM-dd HH:mm:ss)
+            try {
+                SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                SimpleDateFormat outputFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+                Date date = inputFormat.parse(dates.get(i));
+                legendTimestamp.setText(outputFormat.format(date));
+            } catch (ParseException e) {
+                legendTimestamp.setText(dates.get(i));
+            }
+
             legendPercentage.setText(String.format(Locale.getDefault(), "%.0f%%", percentage));
 
             legendLayout.addView(legendItem);
         }
     }
 
-    private void updateLastUpdated(TextView textView, long timestamp) {
-        if (timestamp > 0) {
-            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault());
-            textView.setText("Last Updated: " + sdf.format(new Date(timestamp)));
+    private void updateLastUpdatedFromDate(TextView textView, String dateString) {
+        if (dateString != null && !dateString.isEmpty()) {
+            try {
+                SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                SimpleDateFormat outputFormat = new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault());
+                Date date = inputFormat.parse(dateString);
+                textView.setText("Last Updated: " + outputFormat.format(date));
+            } catch (ParseException e) {
+                textView.setText("Last Updated: " + dateString);
+            }
         }
     }
 }

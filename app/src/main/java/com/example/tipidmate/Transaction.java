@@ -16,4 +16,16 @@ public class Transaction {
         this.iconResId = iconResId;
         this.iconTint = iconTint;
     }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
 }

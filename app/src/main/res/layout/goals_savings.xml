@@ -51,10 +51,9 @@
                         android:id="@+id/ivGoalIcon"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
-                        android:background="@drawable/bg_icon_blue"
+                        android:background="@drawable/bg_circle_green"
                         android:padding="8dp"
-                        android:src="@drawable/ic_laptop"
-                        app:tint="@color/white" />
+                        android:src="@drawable/ic_laptop" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -182,7 +181,8 @@
                         android:padding="16dp"
                         android:text="mm/dd/yyyy"
                         android:textColor="#808080"
-                        app:drawableStartCompat="@drawable/ic_calendar" />
+                        app:drawableStartCompat="@drawable/ic_calendar"
+                        android:drawableTint="@color/light_green_accent" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -208,7 +208,8 @@
                         android:padding="16dp"
                         android:text="--:-- --"
                         android:textColor="#808080"
-                        app:drawableStartCompat="@drawable/ic_time" />
+                        app:drawableStartCompat="@drawable/ic_time"
+                        android:drawableTint="@color/light_green_accent" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -231,7 +232,8 @@
                 android:padding="16dp"
                 android:textColor="@color/white"
                 android:textColorHint="#808080"
-                app:drawableStartCompat="@drawable/ic_edit" />
+                app:drawableStartCompat="@drawable/ic_edit"
+                android:drawableTint="@color/light_green_accent" />
 
             <!-- Add to Goal Button -->
             <com.google.android.material.button.MaterialButton

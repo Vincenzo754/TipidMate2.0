@@ -1,5 +1,7 @@
 package com.example.tipidmate;
 
+import com.example.tipidmate.models.Goal;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +20,7 @@ public class GoalRepository {
         return instance;
     }
 
-    public List<Goal> getGoalList() {
+    public List<Goal> getGoals() {
         return goalList;
     }
 
@@ -32,7 +34,7 @@ public class GoalRepository {
 
     public Goal findGoalById(String id) {
         for (Goal goal : goalList) {
-            if (goal.getId().equals(id)) {
+            if (String.valueOf(goal.getGoalId()).equals(id)) {
                 return goal;
             }
         }
@@ -41,7 +43,7 @@ public class GoalRepository {
 
     public void updateGoal(Goal goal) {
         for (int i = 0; i < goalList.size(); i++) {
-            if (goalList.get(i).getId().equals(goal.getId())) {
+            if (goalList.get(i).getGoalId() == goal.getGoalId()) {
                 goalList.set(i, goal);
                 return;
             }

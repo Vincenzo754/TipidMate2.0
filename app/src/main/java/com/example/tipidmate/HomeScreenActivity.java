@@ -44,15 +44,8 @@ public class HomeScreenActivity extends AppCompatActivity implements Transaction
         tvGreeting = findViewById(R.id.tvGreeting);
 
         // Handle username display
-        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        String username = prefs.getString("USERNAME", "User"); // Default to "User"
-        Intent intent = getIntent();
-        if (intent != null && intent.hasExtra("USERNAME")) {
-            username = intent.getStringExtra("USERNAME");
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putString("USERNAME", username);
-            editor.apply();
-        }
+        SharedPreferences prefs = getSharedPreferences("TipidMatePrefs", MODE_PRIVATE);
+        String username = prefs.getString("username", "User"); // Default to "User"
         tvUserName.setText(username);
 
         Button btnIncome = findViewById(R.id.btnIncome);
