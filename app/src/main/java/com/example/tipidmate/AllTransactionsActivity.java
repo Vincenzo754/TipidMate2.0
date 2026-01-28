@@ -1,49 +1,97 @@
 package com.example.tipidmate;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.tipidmate.api.ApiService;
+import com.example.tipidmate.api.RetrofitClient;
+import com.example.tipidmate.models.ApiResponse;
+import com.example.tipidmate.models.Transaction;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import java.util.ArrayList;
 import java.util.List;
 
-public class AllTransactionsActivity extends AppCompatActivity implements TransactionAdapter.OnTransactionDeletedListener {
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
+public class AllTransactionsActivity extends AppCompatActivity {
+
+    private ImageView ivBack;
+    private RecyclerView rvAllTransactions;
     private TransactionAdapter adapter;
-    private TransactionRepository transactionRepository;
+    private List<Transaction> allTransactions = new ArrayList<>();
+    private ApiService apiService;
+    private int userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.all_transactions_screen);
 
-        transactionRepository = TransactionRepository.getInstance();
+        SharedPreferences prefs = getSharedPreferences("TipidMatePrefs", MODE_PRIVATE);
+        userId = prefs.getInt("user_id", -1);
 
-        ImageView ivBack = findViewById(R.id.ivBack);
-        if (ivBack != null) {
-            ivBack.setOnClickListener(v -> finish());
+        if (userId == -1) {
+            // Handle user not logged in
+            finish();
+            return;
         }
 
-        RecyclerView rvAllTransactions = findViewById(R.id.rvAllTransactions);
-        rvAllTransactions.setLayoutManager(new LinearLayoutManager(this));
+        apiService = RetrofitClient.getClient().create(ApiService.class);
 
-        List<Transaction> transactions = transactionRepository.getTransactions();
-        adapter = new TransactionAdapter(this, transactions, this);
+        initializeViews();
+        setupRecyclerView();
+        setupListeners();
+        loadAllTransactions();
+
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.GONE);
+        }
+    }
+
+    private void initializeViews() {
+        ivBack = findViewById(R.id.ivBack);
+        rvAllTransactions = findViewById(R.id.rvAllTransactions);
+    }
+
+    private void setupRecyclerView() {
+        rvAllTransactions.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new TransactionAdapter(this, allTransactions, null); // No delete listener for now
         rvAllTransactions.setAdapter(adapter);
     }
 
-    @Override
-    public void onTransactionDeleted() {
-        adapter.updateTransactions(transactionRepository.getTransactions());
+    private void setupListeners() {
+        ivBack.setOnClickListener(v -> finish());
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (adapter != null) {
-            adapter.updateTransactions(transactionRepository.getTransactions());
-        }
+    private void loadAllTransactions() {
+        Call<ApiResponse<List<Transaction>>> call = apiService.getTransactions(userId);
+        call.enqueue(new Callback<ApiResponse<List<Transaction>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<Transaction>>> call, Response<ApiResponse<List<Transaction>>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    allTransactions.clear();
+                    allTransactions.addAll(response.body().getData());
+                    adapter.notifyDataSetChanged();
+                } else {
+                    Toast.makeText(AllTransactionsActivity.this, "Failed to load transactions", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<Transaction>>> call, Throwable t) {
+                Toast.makeText(AllTransactionsActivity.this, "Failed to load transactions", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

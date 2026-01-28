@@ -293,17 +293,18 @@ public class GoalsSavingsActivity extends AppCompatActivity {
                 return R.drawable.ic_home;
             case "ic_car":
                 return R.drawable.ic_transport;
-            case "ic_vacation":
             case "ic_travel":
                 return R.drawable.ic_travel;
             case "ic_education":
                 return R.drawable.ic_education;
-            case "ic_emergency":
+            case "ic_furniture":
                 return R.drawable.ic_furniture;
-            case "ic_savings":
+            case "ic_others":
                 return R.drawable.ic_others;
-            case "ic_laptop":
+            case "ic_electronic":
                 return R.drawable.ic_laptop;
+            case "ic_appliances":
+                return R.drawable.ic_appliances;
             default:
                 return R.drawable.ic_goals;
         }

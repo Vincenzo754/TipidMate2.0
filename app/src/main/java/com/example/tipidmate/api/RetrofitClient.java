@@ -11,6 +11,7 @@ public class RetrofitClient {
     // For Android Emulator: use "http://10.0.2.2/tipidmate_api/"
     // For Real Phone: use "http://YOUR_COMPUTER_IP/tipidmate_api/"
     private static final String BASE_URL = "http://10.0.2.2/tipidmate_api/";
+        //"http://10.0.2.2/tipidmate_api/";
 
     private static Retrofit retrofit = null;
 

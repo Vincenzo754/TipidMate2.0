@@ -16,9 +16,9 @@ import androidx.core.content.ContextCompat;
 import com.example.tipidmate.api.ApiService;
 import com.example.tipidmate.api.RetrofitClient;
 import com.example.tipidmate.models.ApiResponse;
-import com.example.tipidmate.models.Expense;
 import com.example.tipidmate.models.Goal;
 import com.example.tipidmate.models.GroupBudget;
+import com.example.tipidmate.models.Transaction;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
@@ -143,52 +143,62 @@ public class ChartsActivity extends AppCompatActivity {
     }
 
     private void loadBarChartData() {
-        Call<ApiResponse<List<Expense>>> call = apiService.getExpenses(userId);
-        call.enqueue(new Callback<ApiResponse<List<Expense>>>() {
+        Call<ApiResponse<List<Transaction>>> call = apiService.getTransactions(userId);
+        call.enqueue(new Callback<ApiResponse<List<Transaction>>>() {
             @Override
-            public void onResponse(Call<ApiResponse<List<Expense>>> call, Response<ApiResponse<List<Expense>>> response) {
+            public void onResponse(Call<ApiResponse<List<Transaction>>> call, Response<ApiResponse<List<Transaction>>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    ApiResponse<List<Expense>> apiResponse = response.body();
+                    ApiResponse<List<Transaction>> apiResponse = response.body();
 
                     if (apiResponse.isSuccess() && apiResponse.getData() != null) {
-                        List<Expense> expenses = apiResponse.getData();
+                        List<Transaction> transactions = apiResponse.getData();
 
-                        if (expenses.isEmpty()) {
+                        if (transactions.isEmpty()) {
                             barChart.setVisibility(View.GONE);
                             TextView barChartTitle = findViewById(R.id.bar_chart_title);
                             if (barChartTitle != null) {
-                                barChartTitle.setText("No Expenses Yet.");
+                                barChartTitle.setText("No Transactions Yet.");
                             }
                             return;
                         }
 
                         barChart.setVisibility(View.VISIBLE);
-                        displayBarChart(expenses);
+                        displayBarChart(transactions);
                     }
                 }
             }
 
             @Override
-            public void onFailure(Call<ApiResponse<List<Expense>>> call, Throwable t) {
+            public void onFailure(Call<ApiResponse<List<Transaction>>> call, Throwable t) {
                 t.printStackTrace();
             }
         });
     }
 
-    private void displayBarChart(List<Expense> expenses) {
+    private void displayBarChart(List<Transaction> transactions) {
         ArrayList<BarEntry> entries = new ArrayList<>();
         ArrayList<String> labels = new ArrayList<>();
         ArrayList<Integer> colors = new ArrayList<>();
-        String lastExpenseDate = "";
+        String lastTransactionDate = "";
 
-        for (int i = 0; i < expenses.size(); i++) {
-            Expense expense = expenses.get(i);
-            entries.add(new BarEntry(i, (float) expense.getAmount()));
-            labels.add(expense.getDescription());
-            colors.add(Color.RED); // Expenses are red
+        // Show last 10 transactions
+        int limit = Math.min(transactions.size(), 10);
+        List<Transaction> recentTransactions = transactions.subList(0, limit);
+
+        for (int i = 0; i < recentTransactions.size(); i++) {
+            Transaction transaction = recentTransactions.get(i);
+            entries.add(new BarEntry(i, (float) transaction.getAmount()));
+            labels.add(transaction.getCategory());
+
+            // Color based on type
+            if (transaction.getType().equals("income")) {
+                colors.add(ContextCompat.getColor(this, R.color.light_green_accent));
+            } else {
+                colors.add(Color.RED);
+            }
 
             if (i == 0) {
-                lastExpenseDate = expense.getExpenseDate();
+                lastTransactionDate = transaction.getTransactionDate();
             }
         }
 
@@ -203,7 +213,7 @@ public class ChartsActivity extends AppCompatActivity {
         barChart.setData(barData);
         barChart.invalidate();
 
-        updateLastUpdatedFromDate(barChartLastUpdated, lastExpenseDate);
+        updateLastUpdatedFromDate(barChartLastUpdated, lastTransactionDate);
     }
 
     private void setupPieChart(PieChart chart, String centerText) {
@@ -385,12 +395,21 @@ public class ChartsActivity extends AppCompatActivity {
     private void updateLastUpdatedFromDate(TextView textView, String dateString) {
         if (dateString != null && !dateString.isEmpty()) {
             try {
-                SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                // Try parsing transaction date format (yyyy-MM-dd)
+                SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
                 SimpleDateFormat outputFormat = new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault());
                 Date date = inputFormat.parse(dateString);
                 textView.setText("Last Updated: " + outputFormat.format(date));
             } catch (ParseException e) {
-                textView.setText("Last Updated: " + dateString);
+                // Try parsing with time (yyyy-MM-dd HH:mm:ss)
+                try {
+                    SimpleDateFormat inputFormat2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                    SimpleDateFormat outputFormat = new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault());
+                    Date date = inputFormat2.parse(dateString);
+                    textView.setText("Last Updated: " + outputFormat.format(date));
+                } catch (ParseException e2) {
+                    textView.setText("Last Updated: " + dateString);
+                }
             }
         }
     }

@@ -8,13 +8,16 @@ import com.example.tipidmate.models.Goal;
 import com.example.tipidmate.models.GroupBudget;
 import com.example.tipidmate.models.GroupBudgetContribution;
 import com.example.tipidmate.models.GroupBudgetMember;
+import com.example.tipidmate.models.Transaction;  // ← ADD THIS IMPORT
 import com.example.tipidmate.models.User;
+import com.google.gson.annotations.SerializedName;  // ← ADD THIS IMPORT
 
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.HTTP;  // ← ADD THIS IMPORT
 import retrofit2.http.POST;
 import retrofit2.http.Query;
 
@@ -80,4 +83,32 @@ public interface ApiService {
 
     @GET("get_group_contributions.php")
     Call<ApiResponse<List<GroupBudgetContribution>>> getGroupContributions(@Query("group_budget_id") int groupBudgetId);
+
+    // ========== TRANSACTION ENDPOINTS ==========
+    // ← ADD THESE NEW ENDPOINTS HERE
+
+    @POST("add_transaction.php")
+    Call<ApiResponse<Transaction>> addTransaction(@Body Transaction transaction);
+
+    @GET("get_transactions.php")
+    Call<ApiResponse<List<Transaction>>> getTransactions(@Query("user_id") int userId);
+
+    @HTTP(method = "DELETE", path = "delete_transaction.php", hasBody = true)
+    Call<ApiResponse<Void>> deleteTransaction(@Body DeleteRequest deleteRequest);
+
+    // ========== HELPER CLASSES ==========
+    // ← ADD THIS HELPER CLASS HERE
+
+    class DeleteRequest {
+        @SerializedName("transaction_id")
+        private int transactionId;
+
+        public DeleteRequest(int transactionId) {
+            this.transactionId = transactionId;
+        }
+
+        public int getTransactionId() {
+            return transactionId;
+        }
+    }
 }

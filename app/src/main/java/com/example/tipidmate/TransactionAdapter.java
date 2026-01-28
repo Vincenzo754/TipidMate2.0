@@ -1,8 +1,8 @@
 package com.example.tipidmate;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +13,9 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.tipidmate.models.Transaction;
+
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -20,36 +23,74 @@ import java.util.Locale;
 
 public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder> {
 
+    private Context context;
     private List<Transaction> transactions;
-    private final Context context;
-    private final OnTransactionDeletedListener listener;
+    private OnTransactionDeleteListener deleteListener;
 
-    public interface OnTransactionDeletedListener {
-        void onTransactionDeleted();
+    public interface OnTransactionDeleteListener {
+        void onDeleteTransaction(Transaction transaction);
     }
 
-    public TransactionAdapter(Context context, List<Transaction> transactions, OnTransactionDeletedListener listener) {
+    public TransactionAdapter(Context context, List<Transaction> transactions, OnTransactionDeleteListener deleteListener) {
         this.context = context;
         this.transactions = transactions;
-        this.listener = listener;
-    }
-
-    public void updateTransactions(List<Transaction> transactions) {
-        this.transactions = transactions;
-        notifyDataSetChanged();
+        this.deleteListener = deleteListener;
     }
 
     @NonNull
     @Override
     public TransactionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.transaction_item, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.transaction_item, parent, false);
         return new TransactionViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull TransactionViewHolder holder, int position) {
         Transaction transaction = transactions.get(position);
-        holder.bind(transaction);
+
+        // Set category icon and color
+        holder.ivCategoryIcon.setImageResource(getCategoryIcon(transaction.getCategory()));
+        holder.ivCategoryIcon.setColorFilter(ContextCompat.getColor(context, R.color.light_green_accent), PorterDuff.Mode.SRC_IN);
+
+        // Set title (category name)
+        holder.tvTransactionTitle.setText(transaction.getCategory());
+
+        // Set note
+        String note = transaction.getNote();
+        if (note != null && !note.trim().isEmpty()) {
+            holder.tvTransactionNote.setText(note);
+            holder.tvTransactionNote.setVisibility(View.VISIBLE);
+        } else {
+            holder.tvTransactionNote.setVisibility(View.GONE);
+        }
+
+        // Format and set amount with color
+        String amountText = String.format(Locale.getDefault(), "₱%.2f", transaction.getAmount());
+        if ("expense".equalsIgnoreCase(transaction.getType())) {
+            amountText = "- " + amountText;
+            holder.tvTransactionAmount.setTextColor(Color.RED);
+        } else {
+            amountText = "+ " + amountText;
+            holder.tvTransactionAmount.setTextColor(context.getResources().getColor(R.color.light_green_accent));
+        }
+        holder.tvTransactionAmount.setText(amountText);
+
+
+        // Format and set date
+        try {
+            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            SimpleDateFormat outputFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+            Date date = inputFormat.parse(transaction.getTransactionDate());
+            holder.tvTransactionDate.setText(outputFormat.format(date));
+        } catch (ParseException e) {
+            holder.tvTransactionDate.setText(transaction.getTransactionDate());
+        }
+
+        holder.ivDeleteIcon.setOnClickListener(v -> {
+            if (deleteListener != null) {
+                deleteListener.onDeleteTransaction(transaction);
+            }
+        });
     }
 
     @Override
@@ -57,55 +98,39 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         return transactions.size();
     }
 
-    class TransactionViewHolder extends RecyclerView.ViewHolder {
-        private final ImageView ivCategoryIcon;
-        private final TextView tvTransactionTitle;
-        private final TextView tvTransactionDate;
-        private final TextView tvTransactionAmount;
-        private final ImageView ivDeleteIcon;
+    public void updateTransactions(List<Transaction> newTransactions) {
+        this.transactions = newTransactions;
+        notifyDataSetChanged();
+    }
+
+    static class TransactionViewHolder extends RecyclerView.ViewHolder {
+        ImageView ivCategoryIcon, ivDeleteIcon;
+        TextView tvTransactionTitle, tvTransactionAmount, tvTransactionDate, tvTransactionNote;
 
         public TransactionViewHolder(@NonNull View itemView) {
             super(itemView);
             ivCategoryIcon = itemView.findViewById(R.id.ivCategoryIcon);
-            tvTransactionTitle = itemView.findViewById(R.id.tvTransactionTitle);
-            tvTransactionDate = itemView.findViewById(R.id.tvTransactionDate);
-            tvTransactionAmount = itemView.findViewById(R.id.tvTransactionAmount);
             ivDeleteIcon = itemView.findViewById(R.id.ivDeleteIcon);
-
-            ivDeleteIcon.setOnClickListener(v -> {
-                new AlertDialog.Builder(context)
-                        .setTitle("Delete Transaction")
-                        .setMessage("Are you sure you want to delete this transaction?")
-                        .setPositiveButton("Yes", (dialog, which) -> {
-                            int position = getAdapterPosition();
-                            if (position != RecyclerView.NO_POSITION) {
-                                TransactionRepository.getInstance().deleteTransaction(transactions.get(position));
-                                if (listener != null) {
-                                    listener.onTransactionDeleted();
-                                }
-                            }
-                        })
-                        .setNegativeButton("No", null)
-                        .show();
-            });
+            tvTransactionTitle = itemView.findViewById(R.id.tvTransactionTitle);
+            tvTransactionAmount = itemView.findViewById(R.id.tvTransactionAmount);
+            tvTransactionDate = itemView.findViewById(R.id.tvTransactionDate);
+            tvTransactionNote = itemView.findViewById(R.id.tvTransactionNote);
         }
+    }
 
-        public void bind(Transaction transaction) {
-            ivCategoryIcon.setImageResource(transaction.iconResId);
-            ivCategoryIcon.setColorFilter(ContextCompat.getColor(itemView.getContext(), transaction.iconTint));
-            tvTransactionTitle.setText(transaction.title);
-
-            SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault());
-            tvTransactionDate.setText(dateFormat.format(new Date(transaction.timestamp)));
-
-            String amountString = String.format(Locale.getDefault(), "%.2f", Math.abs(transaction.amount));
-            if (transaction.amount < 0) {
-                tvTransactionAmount.setText("-₱" + amountString);
-                tvTransactionAmount.setTextColor(Color.RED);
-            } else {
-                tvTransactionAmount.setText("+₱" + amountString);
-                tvTransactionAmount.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.light_green_accent));
-            }
+    private int getCategoryIcon(String category) {
+        switch (category.toLowerCase()) {
+            case "food": return R.drawable.ic_food;
+            case "transport": return R.drawable.ic_transport;
+            case "school": return R.drawable.ic_school;
+            case "shopping": return R.drawable.ic_shopping;
+            case "entertainment": return R.drawable.ic_fun;
+            case "bills": return R.drawable.ic_bills;
+            case "health": return R.drawable.ic_health;
+            case "money":
+            case "salary": 
+                return R.drawable.ic_money;
+            default: return R.drawable.ic_others;
         }
     }
 }

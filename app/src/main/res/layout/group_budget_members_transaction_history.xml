@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/dark_green_background"
-    tools:context=".GroupBudgetMembersTransactionHistoryActivity">
+    tools:context=".GroupBudgetHistoryActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
@@ -29,5 +29,15 @@
         android:layout_height="match_parent"
         android:layout_below="@+id/appBarLayout"
         android:padding="16dp" />
+
+    <TextView
+        android:id="@+id/tv_no_history"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="No history yet."
+        android:textColor="@color/light_gray_text"
+        android:textSize="16sp"
+        android:visibility="gone" />
 
 </RelativeLayout>

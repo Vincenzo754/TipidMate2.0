@@ -35,7 +35,7 @@ public class GroupBudgetHistoryActivity extends AppCompatActivity implements Gro
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_group_budget_history);
+        setContentView(R.layout.group_budget_members_transaction_history);
 
         // Get user ID
         SharedPreferences prefs = getSharedPreferences("TipidMatePrefs", MODE_PRIVATE);

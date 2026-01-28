@@ -1,5 +1,7 @@
 package com.example.tipidmate;
 
+import com.example.tipidmate.models.Transaction;
+
 import java.util.ArrayList;
 import java.util.List;
 
