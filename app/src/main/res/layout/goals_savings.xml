@@ -53,7 +53,8 @@
                         android:layout_height="40dp"
                         android:background="@drawable/bg_circle_green"
                         android:padding="8dp"
-                        android:src="@drawable/ic_laptop" />
+                        app:tint="@color/light_green_accent"
+                        tools:srcCompat="@drawable/ic_goals" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"

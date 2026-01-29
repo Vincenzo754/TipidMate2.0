@@ -1,6 +1,7 @@
 package com.example.tipidmate.api;
 
 import com.example.tipidmate.models.ApiResponse;
+import com.example.tipidmate.models.Budget;
 import com.example.tipidmate.models.Category;
 import com.example.tipidmate.models.Contribution;
 import com.example.tipidmate.models.Expense;
@@ -8,16 +9,16 @@ import com.example.tipidmate.models.Goal;
 import com.example.tipidmate.models.GroupBudget;
 import com.example.tipidmate.models.GroupBudgetContribution;
 import com.example.tipidmate.models.GroupBudgetMember;
-import com.example.tipidmate.models.Transaction;  // ← ADD THIS IMPORT
+import com.example.tipidmate.models.Transaction;
 import com.example.tipidmate.models.User;
-import com.google.gson.annotations.SerializedName;  // ← ADD THIS IMPORT
+import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
-import retrofit2.http.HTTP;  // ← ADD THIS IMPORT
+import retrofit2.http.HTTP;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
 
@@ -85,8 +86,6 @@ public interface ApiService {
     Call<ApiResponse<List<GroupBudgetContribution>>> getGroupContributions(@Query("group_budget_id") int groupBudgetId);
 
     // ========== TRANSACTION ENDPOINTS ==========
-    // ← ADD THESE NEW ENDPOINTS HERE
-
     @POST("add_transaction.php")
     Call<ApiResponse<Transaction>> addTransaction(@Body Transaction transaction);
 
@@ -96,9 +95,14 @@ public interface ApiService {
     @HTTP(method = "DELETE", path = "delete_transaction.php", hasBody = true)
     Call<ApiResponse<Void>> deleteTransaction(@Body DeleteRequest deleteRequest);
 
-    // ========== HELPER CLASSES ==========
-    // ← ADD THIS HELPER CLASS HERE
+    // ========== BUDGET ENDPOINTS ==========
+    @POST("set_budget.php")
+    Call<ApiResponse<Budget>> setBudget(@Body Budget budget);
 
+    @GET("get_active_budget.php")
+    Call<ApiResponse<Budget>> getActiveBudget(@Query("user_id") int userId);
+
+    // ========== HELPER CLASSES ==========
     class DeleteRequest {
         @SerializedName("transaction_id")
         private int transactionId;

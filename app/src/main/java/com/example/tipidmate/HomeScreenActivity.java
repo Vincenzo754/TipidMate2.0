@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.tipidmate.api.ApiService;
 import com.example.tipidmate.api.RetrofitClient;
 import com.example.tipidmate.models.ApiResponse;
+import com.example.tipidmate.models.Budget;
 import com.example.tipidmate.models.Transaction;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
@@ -39,8 +40,9 @@ public class HomeScreenActivity extends AppCompatActivity implements Transaction
     private MaterialButton btnIncome, btnExpenses;
 
     // Budget card views
-    private TextView tvBudgetLabel, tvBudgetAmount, tvSpentAmount, tvRemaining;
+    private TextView tvBudgetLabel, tvBudgetAmount, tvSpentAmount, tvRemaining, tvViewDetails;
     private ProgressBar pbBudget;
+    private androidx.cardview.widget.CardView cvBudget;
 
     // Recent section views
     private TextView tvHistory, tvNoTransactions, tvSeeHistoryMessage;
@@ -88,6 +90,7 @@ public class HomeScreenActivity extends AppCompatActivity implements Transaction
 
         // Load data from database
         loadTransactionsData();
+        loadBudgetData();
 
         // Bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -100,6 +103,7 @@ public class HomeScreenActivity extends AppCompatActivity implements Transaction
         super.onResume();
         // Reload data every time user returns to home screen
         loadTransactionsData();
+        loadBudgetData();
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setSelectedItemId(R.id.navigation_home);
@@ -120,7 +124,9 @@ public class HomeScreenActivity extends AppCompatActivity implements Transaction
         tvBudgetAmount = findViewById(R.id.tvBudgetAmount);
         tvSpentAmount = findViewById(R.id.tvSpentAmount);
         tvRemaining = findViewById(R.id.tvRemaining);
+        tvViewDetails = findViewById(R.id.tvViewDetails);
         pbBudget = findViewById(R.id.pbBudget);
+        cvBudget = findViewById(R.id.cvBudget);
 
         // Recent section
         tvHistory = findViewById(R.id.tvHistory);
@@ -154,6 +160,18 @@ public class HomeScreenActivity extends AppCompatActivity implements Transaction
         // History - see all transactions
         tvHistory.setOnClickListener(v -> {
             Intent intent = new Intent(HomeScreenActivity.this, AllTransactionsActivity.class);
+            startActivity(intent);
+        });
+
+        // View Details - open budget activity
+        tvViewDetails.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeScreenActivity.this, BudgetActivity.class);
+            startActivity(intent);
+        });
+
+        // Budget card click - also opens budget activity
+        cvBudget.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeScreenActivity.this, BudgetActivity.class);
             startActivity(intent);
         });
     }
@@ -313,6 +331,54 @@ public class HomeScreenActivity extends AppCompatActivity implements Transaction
                 t.printStackTrace();
             }
         });
+    }
+
+    private void loadBudgetData() {
+        Call<ApiResponse<Budget>> call = apiService.getActiveBudget(userId);
+        call.enqueue(new Callback<ApiResponse<Budget>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Budget>> call, Response<ApiResponse<Budget>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<Budget> apiResponse = response.body();
+
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        Budget budget = apiResponse.getData();
+                        displayBudgetInfo(budget);
+                    } else {
+                        // No budget set - show placeholder
+                        showNoBudgetState();
+                    }
+                } else {
+                    showNoBudgetState();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Budget>> call, Throwable t) {
+                showNoBudgetState();
+                t.printStackTrace();
+            }
+        });
+    }
+
+    private void displayBudgetInfo(Budget budget) {
+        tvBudgetLabel.setText(budget.getFrequency().substring(0, 1).toUpperCase() +
+                budget.getFrequency().substring(1) + " Budget");
+        tvBudgetAmount.setText(String.format(Locale.getDefault(), "₱%.0f", budget.getAmount()));
+        tvSpentAmount.setText(String.format(Locale.getDefault(), " ₱%.2f", budget.getSpent()));
+
+        int percentage = (int) budget.getPercentage();
+        percentage = Math.min(percentage, 100); // Cap at 100%
+        pbBudget.setProgress(percentage);
+        tvRemaining.setText(percentage + "%");
+    }
+
+    private void showNoBudgetState() {
+        tvBudgetLabel.setText("No Budget Set");
+        tvBudgetAmount.setText("₱0");
+        tvSpentAmount.setText(" ₱0");
+        tvRemaining.setText("0%");
+        pbBudget.setProgress(0);
     }
 
     private String getGreeting() {

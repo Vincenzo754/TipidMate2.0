@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,7 +24,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class AllTransactionsActivity extends AppCompatActivity {
+public class AllTransactionsActivity extends AppCompatActivity implements TransactionAdapter.OnTransactionDeleteListener {
 
     private ImageView ivBack;
     private RecyclerView rvAllTransactions;
@@ -66,7 +67,7 @@ public class AllTransactionsActivity extends AppCompatActivity {
 
     private void setupRecyclerView() {
         rvAllTransactions.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new TransactionAdapter(this, allTransactions, null); // No delete listener for now
+        adapter = new TransactionAdapter(this, allTransactions, this);
         rvAllTransactions.setAdapter(adapter);
     }
 
@@ -91,6 +92,54 @@ public class AllTransactionsActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<ApiResponse<List<Transaction>>> call, Throwable t) {
                 Toast.makeText(AllTransactionsActivity.this, "Failed to load transactions", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    public void onDeleteTransaction(Transaction transaction) {
+        // Show confirmation dialog
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Transaction")
+                .setMessage("Are you sure you want to delete this transaction?")
+                .setPositiveButton("Delete", (dialog, which) -> deleteTransaction(transaction))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void deleteTransaction(Transaction transaction) {
+        ApiService.DeleteRequest deleteRequest = new ApiService.DeleteRequest(transaction.getTransactionId());
+
+        Call<ApiResponse<Void>> call = apiService.deleteTransaction(deleteRequest);
+        call.enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<Void> apiResponse = response.body();
+
+                    if (apiResponse.isSuccess()) {
+                        Toast.makeText(AllTransactionsActivity.this,
+                                "Transaction deleted successfully",
+                                Toast.LENGTH_SHORT).show();
+                        loadAllTransactions(); // Reload data
+                    } else {
+                        Toast.makeText(AllTransactionsActivity.this,
+                                apiResponse.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(AllTransactionsActivity.this,
+                            "Failed to delete transaction",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                Toast.makeText(AllTransactionsActivity.this,
+                        "Connection failed: " + t.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+                t.printStackTrace();
             }
         });
     }
