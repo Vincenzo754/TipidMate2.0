@@ -2,11 +2,8 @@
 <network-security-config>
     <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
-<<<<<<< Updated upstream
             <certificates src="system"/>
-=======
-            <certificates src="system" />
->>>>>>> Stashed changes
         </trust-anchors>
     </base-config>
 </network-security-config>
+
